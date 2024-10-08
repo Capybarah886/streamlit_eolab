@@ -30,7 +30,7 @@ try:
         dataframe_2 = pd.read_csv(uploaded_file_2)
         # Load the model
         try:
-            with open("./model.pth", "rb") as f:
+            with open("./models/model.pth", "rb") as f:
                 buffer = io.BytesIO(f.read())
             model = torch.load(buffer)
             st.write('Model loaded successfully')
