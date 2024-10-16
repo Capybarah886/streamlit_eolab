@@ -5,6 +5,8 @@ from transformer import TransformerModel
 from torch.utils.data import DataLoader, TensorDataset
 from collections import Counter
 
+
+
 class InferenceModel:
     def __init__(self, model, left_csv, right_csv):
         self.left_csv = left_csv
@@ -30,7 +32,7 @@ class InferenceModel:
         data = data.apply(pd.to_numeric, errors='coerce')
 
         # Slice the data and convert it to tensors
-        for i in range(0, len(data) - 200, 200):
+        for i in range(0, len(data) - 200, 100):
             data_tensor = torch.tensor(data.values[i:i + 200]).float()
             data_lst.append(data_tensor)
 
