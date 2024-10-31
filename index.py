@@ -3,8 +3,11 @@ import pandas as pd
 import altair as alt
 import torch
 import io
+import plotly.figure_factory as ff
+import plotly.express as px
+from torch_models import LSTMModel
+
 from inference import InferenceModel
-from transformer import TransformerModel
 from sktime.utils import mlflow_sktime  
 # from model_loader import load_model
 from utils import combined_flow
@@ -53,9 +56,12 @@ try:
                 print(model.get_params())
                 st.write('Model loaded successfully')
             else:
-                with open("./models/model.pth", "rb") as f:
+                with open("./models/lstm_model.pth", "rb") as f:
                     buffer = io.BytesIO(f.read())
-                model = torch.load(buffer)
+                model = torch.load(buffer, map_location=torch.device('cpu'))
+                model = LSTMModel(18,256,3)  # Initialize the model instance
+                model.eval()  # Set the model to evaluation mode
+
                 st.write('Model loaded successfully')
         except Exception as e:
             st.write(f"Error loading model: {e}")
@@ -66,19 +72,33 @@ try:
             if model_type == ":rainbow[Rocket model(sktime)]":
                 # add a loading bar
                 with st.spinner("Inference in progress"):
-                        
                     results=combined_flow(dataframe_1, dataframe_2, model)
                     st.write("Inference successful")
                     stroke_dic={0:'Freestyle', 1:'Backstroke', 2:'Butterfly'}
-                    results = [stroke_dic[i] for i in results]
-                    st.write('There are ', len(results), 'batch results')
-                    st.write(results)                    
-                    st.write("Among them, the stroke with the highest frequency is: ", max(set(results), key = results.count))
+                    result = [stroke_dic[i] for i in results]
+                    st.write('There are ', len(result), 'batch results')
+                    st.write('There are', result.count('Freestyle'), 'Freestyle')
+                    st.write('There are', result.count('Backstroke'), 'Backstroke')
+                    st.write('There are', result.count('Butterfly'), 'Butterfly')
+                    # add a pie chart using plotly
+                    fig = px.pie(values=[result.count('Freestyle'), result.count('Backstroke'), result.count('Butterfly')], names=['Freestyle', 'Backstroke', 'Butterfly'])
+                    st.plotly_chart(fig, use_container_width=True)
+                    max_stroke = max(result, key=result.count)
+                    st.write('The prediction of the stroke type is:', max_stroke)
             else:
                 inference_model = InferenceModel(model, dataframe_1, dataframe_2)
                 result = inference_model.inference()
                 st.write("Inference successful")
-                st.write(result)
+                stroke_counts = {'Freestyle': 2, 'Butterfly': 1, 'Backstroke': 0}
+                for stroke in result['batch_result']:
+                    if stroke in stroke_counts:
+                        stroke_counts[stroke] += 1
+
+                fig = px.pie(values=list(stroke_counts.values()), names=list(stroke_counts.keys()))
+                st.plotly_chart(fig, use_container_width=True)
+
+                max_stroke = max(stroke_counts, key=stroke_counts.get)
+                st.write('The prediction of the stroke type is:', max_stroke)
         except Exception as e:
             st.write(f"Error initializing inference model: {e}")
             raise
