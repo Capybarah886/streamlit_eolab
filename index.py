@@ -3,7 +3,6 @@ import pandas as pd
 import altair as alt
 import torch
 import io
-import plotly.figure_factory as ff
 import plotly.express as px
 from torch_models import LSTMModel
 

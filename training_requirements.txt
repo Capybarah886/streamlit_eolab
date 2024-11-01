@@ -6,3 +6,4 @@ scikit-learn
 sktime
 numba
 mlflow
+plotly
