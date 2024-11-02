@@ -6,3 +6,4 @@ torch
 sktime
 mlflow
 numba
+plotly
